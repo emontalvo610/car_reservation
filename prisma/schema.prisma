@@ -1,0 +1,111 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// User model for authentication
+model User {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  name          String
+  password      String
+  role          UserRole      @default(USER)
+  reservations  Reservation[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+// Car model
+model Car {
+  id              String        @id @default(cuid())
+  make            String
+  model           String
+  year            Int
+  color           String
+  licensePlate    String        @unique
+  category        CarCategory
+  status          CarStatus     @default(AVAILABLE)
+  currentLocation String        // Current physical location of the car
+  pricePerDay     Float
+  imageUrl        String?
+  features        String        // JSON string of features
+  reservations    Reservation[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+enum CarCategory {
+  ECONOMY
+  COMPACT
+  MIDSIZE
+  FULLSIZE
+  SUV
+  LUXURY
+  VAN
+}
+
+enum CarStatus {
+  AVAILABLE
+  RESERVED
+  IN_USE
+  MAINTENANCE
+}
+
+// Reservation model
+model Reservation {
+  id               String            @id @default(cuid())
+  userId           String
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  carId            String
+  car              Car               @relation(fields: [carId], references: [id], onDelete: Cascade)
+  startDate        DateTime
+  endDate          DateTime
+  pickupLocation   String
+  dropoffLocation  String
+  status           ReservationStatus @default(PENDING)
+  totalPrice       Float
+  notes            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  
+  @@index([carId, startDate, endDate])
+  @@index([userId])
+  @@index([status])
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// Location model for tracking car movements
+model Location {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  city      String
+  state     String
+  zipCode   String
+  country   String   @default("USA")
+  latitude  Float?
+  longitude Float?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([name, city])
+}
