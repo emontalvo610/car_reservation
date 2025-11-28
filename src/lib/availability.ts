@@ -31,6 +31,8 @@ export async function findAvailableCars(query: AvailabilityQuery) {
     },
   });
 
+  console.log("@@@Debug, allCars:", allCars);
+
   const availableCars = allCars.filter((car) => {
     if (car.reservations.length === 0) {
       return car.currentLocation === pickupLocation;

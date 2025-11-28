@@ -63,6 +63,13 @@ export async function PATCH(
         where: { id: reservation.carId },
         data: { status: 'IN_USE' },
       });
+    } else if (status === 'CONFIRMED') {
+      if (!['IN_USE', 'MAINTENANCE'].includes(reservation.car.status)) {
+        await prisma.car.update({
+          where: { id: reservation.carId },
+          data: { status: 'RESERVED' },
+        });
+      }
     } else if (status === 'CANCELLED') {
       const others = await prisma.reservation.findMany({
         where: {
